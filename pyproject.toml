@@ -47,9 +47,11 @@ packages = ["src/openrightofway"]
 
 [tool.ruff]
 line-length = 100
+src = ["src"]
+
+[tool.ruff.lint]
 select = ["E", "F", "I", "UP"]
 ignore = ["E501"]
-src = ["src"]
 
 [tool.black]
 line-length = 100
