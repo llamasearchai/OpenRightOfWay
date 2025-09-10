@@ -1,8 +1,13 @@
 # OpenRightOfWay
 
+<p align="center">
+  <img src="OpenRightOfWay.png" alt="OpenRightOfWay logo" width="220">
+  <br/>
+</p>
+
 ## About
 
-OpenRightOfWay is a Python monitoring application that leverages computer vision, geospatial analysis, and automated alerting to detect encroachments in pipeline right-of-way corridors and coordinate immediate field response actions.
+OpenRightOfWay is an OpenAI Agents SDK integrated Python monitoring application that leverages computer vision, geospatial analysis, and automated alerting to detect encroachments in pipeline right-of-way corridors and coordinate immediate field response actions.
 
 Key capabilities:
 - Multi-source imagery: satellite, aerial surveys, and drone footage
@@ -36,7 +41,6 @@ uv run orow train-model --model-path models/baseline.joblib
 uv run orow detect \
   --before path/to/before.png \
   --after path/to/after.png \
-  --corridor configs/corridor.geojson \
   --report reports/detection_report.json
 ```
 

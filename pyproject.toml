@@ -45,6 +45,12 @@ orow = "openrightofway.cli:app"
 [tool.hatch.build.targets.wheel]
 packages = ["src/openrightofway"]
 
+[tool.hatch.build]
+include = [
+  "README.md",
+  "OpenRightOfWay.png",
+]
+
 [tool.ruff]
 line-length = 100
 src = ["src"]
