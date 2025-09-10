@@ -1,0 +1,65 @@
+[build-system]
+requires = ["hatchling>=1.24"]
+build-backend = "hatchling.build"
+
+[project]
+name = "openrightofway"
+version = "0.1.0"
+description = "Detect encroachments in pipeline right-of-way corridors using CV, geospatial analysis, alerting, and ML."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "OpenRightOfWay Maintainers" }]
+keywords = ["computer-vision", "geospatial", "pipelines", "monitoring", "alerts", "ml"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+]
+dependencies = [
+  "numpy>=1.24",
+  "opencv-python>=4.8",
+  "shapely>=2.0",
+  "pyproj>=3.6",
+  "joblib>=1.3",
+  "scikit-learn>=1.3",
+  "typer[all]>=0.12",
+  "rich>=13.7",
+  "PyYAML>=6.0",
+  "requests>=2.31",
+]
+
+[project.optional-dependencies]
+geo = ["rasterio>=1.3", "GDAL>=3.4"]
+alerts = ["twilio>=9.0"]
+test = ["pytest>=8.0", "pytest-cov>=4.1"]
+dev = ["ruff>=0.5.6", "black>=24.3", "mypy>=1.10", "tox>=4.0", "types-PyYAML>=6.0.12.12"]
+
+[project.scripts]
+orow = "openrightofway.cli:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/openrightofway"]
+
+[tool.ruff]
+line-length = 100
+select = ["E", "F", "I", "UP"]
+ignore = ["E501"]
+src = ["src"]
+
+[tool.black]
+line-length = 100
+target-version = ["py310"]
+
+[tool.mypy]
+python_version = "3.10"
+warn_unused_ignores = true
+warn_redundant_casts = true
+warn_unused_configs = true
+strict = false
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+addopts = "-q --disable-warnings"
+testpaths = ["tests"]
+

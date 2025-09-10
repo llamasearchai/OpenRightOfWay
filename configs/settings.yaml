@@ -1,0 +1,27 @@
+# OpenRightOfWay default settings
+
+app:
+  model_path: models/baseline.joblib
+  reports_dir: reports
+  work_orders_db: work_orders.db
+
+pipeline:
+  pipeline_buffer_meters: 15
+  min_contour_area: 200
+  change_threshold: 30
+  morphological_kernel: 3
+
+alerts:
+  sms:
+    enabled: false
+    to: []
+  email:
+    enabled: false
+    to: []
+
+compliance:
+  setback_meters: 15
+
+reporting:
+  include_images: true
+
