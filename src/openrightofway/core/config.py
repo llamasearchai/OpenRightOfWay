@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -30,19 +30,19 @@ class PipelineSettings:
 @dataclass
 class AlertsSMS:
     enabled: bool = False
-    to: List[str] = None  # type: ignore[assignment]
+    to: list[str] = field(default_factory=list)
 
 
 @dataclass
 class AlertsEmail:
     enabled: bool = False
-    to: List[str] = None  # type: ignore[assignment]
+    to: list[str] = field(default_factory=list)
 
 
 @dataclass
 class AlertsSettings:
-    sms: AlertsSMS = AlertsSMS()
-    email: AlertsEmail = AlertsEmail()
+    sms: AlertsSMS = field(default_factory=AlertsSMS)
+    email: AlertsEmail = field(default_factory=AlertsEmail)
 
 
 @dataclass
@@ -56,12 +56,21 @@ class ReportingSettings:
 
 
 @dataclass
+class LLMSettings:
+    enabled: bool = False
+    provider: str = "openai"
+    model: str = "gpt-4o-mini"
+    max_tokens: int = 400
+
+
+@dataclass
 class Config:
-    app: AppSettings = AppSettings()
-    pipeline: PipelineSettings = PipelineSettings()
-    alerts: AlertsSettings = AlertsSettings()
-    compliance: ComplianceSettings = ComplianceSettings()
-    reporting: ReportingSettings = ReportingSettings()
+    app: AppSettings = field(default_factory=AppSettings)
+    pipeline: PipelineSettings = field(default_factory=PipelineSettings)
+    alerts: AlertsSettings = field(default_factory=AlertsSettings)
+    compliance: ComplianceSettings = field(default_factory=ComplianceSettings)
+    reporting: ReportingSettings = field(default_factory=ReportingSettings)
+    llm: LLMSettings = field(default_factory=LLMSettings)
 
 
 _DEFAULTS: Dict[str, Any] = {
@@ -82,6 +91,7 @@ _DEFAULTS: Dict[str, Any] = {
     },
     "compliance": {"setback_meters": 15},
     "reporting": {"include_images": True},
+    "llm": {"enabled": False, "provider": "openai", "model": "gpt-4o-mini", "max_tokens": 400},
 }
 
 
@@ -119,6 +129,7 @@ def from_dict(d: Dict[str, Any]) -> Config:
     alerts = d.get("alerts", {})
     compliance = d.get("compliance", {})
     reporting = d.get("reporting", {})
+    llm = d.get("llm", {})
 
     cfg = Config(
         app=AppSettings(**app),
@@ -129,6 +140,7 @@ def from_dict(d: Dict[str, Any]) -> Config:
         ),
         compliance=ComplianceSettings(**compliance),
         reporting=ReportingSettings(**reporting),
+        llm=LLMSettings(**llm),
     )
     return cfg
 

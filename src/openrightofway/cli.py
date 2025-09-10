@@ -15,6 +15,7 @@ from openrightofway.alerts.notifier import Notifier
 from openrightofway.integrations.work_orders import WorkOrderManager
 from openrightofway.reports.reporting import generate_report
 from openrightofway.utils.logging import get_logger
+from openrightofway.llm.openai_agent import summarize_events
 
 app = typer.Typer(add_completion=False, help="OpenRightOfWay CLI")
 logger = get_logger(__name__)
@@ -180,12 +181,38 @@ def pipeline_run(
         "tickets": tickets,
     }
 
+    # Optional LLM summary
+    if cfg.llm.enabled:
+        try:
+            result["summary_nlp"] = summarize_events(result, cfg)
+        except Exception as e:
+            logger.error("LLM summary failed: %s", e)
+
     if report:
         path = report
         generate_report(path, summary="Pipeline run", details=result)
         typer.echo(path)
     else:
         typer.echo(json.dumps(result))
+
+
+@app.command()
+def summarize_report(
+    report: str = typer.Option(..., help="Path to an existing JSON report"),
+    write: bool = typer.Option(False, help="Write a sibling *_summary.txt file instead of printing"),
+):
+    """Summarize a JSON report using the configured LLM (falls back to deterministic summary)."""
+    cfg = load_config()
+    p = Path(report)
+    data = json.loads(p.read_text(encoding="utf-8"))
+    summary = summarize_events(data, cfg)
+    if write:
+        out = p.with_suffix("")
+        out = Path(f"{out}_summary.txt")
+        out.write_text(summary, encoding="utf-8")
+        typer.echo(str(out))
+    else:
+        typer.echo(summary)
 
 
 @app.command()
@@ -216,4 +243,38 @@ def ticket(
     wom = WorkOrderManager(cfg.app.work_orders_db)
     wo = wom.create(title=title, description=description, priority=priority)
     typer.echo(json.dumps({"id": wo.id, "status": wo.status}))
+
+
+@app.command(name="db-serve")
+def db_serve(
+    port: int = typer.Option(8001, help="Port to serve Datasette on"),
+    print_cmd: bool = typer.Option(False, "--print-cmd", help="Print the Datasette command and exit"),
+):
+    """Serve the work orders SQLite DB with Datasette (if installed)."""
+    cfg = load_config()
+    db_path = Path(cfg.app.work_orders_db)
+    cmd = [
+        "datasette",
+        "serve",
+        str(db_path),
+        "--port",
+        str(port),
+        "--immutable",
+        str(db_path),
+    ]
+    if print_cmd:
+        typer.echo(" ".join(cmd))
+        return
+    # Try to run Datasette if available
+    try:
+        import shutil
+        import subprocess
+
+        if shutil.which("datasette") is None:
+            typer.echo("datasette CLI not found. Install with: uv pip install -e .[ops]")
+            raise typer.Exit(code=1)
+        subprocess.run(cmd, check=True)
+    except Exception as e:
+        logger.error("Failed to start Datasette: %s", e)
+        raise typer.Exit(code=1)
 

@@ -22,6 +22,10 @@ Common commands
     - uv run orow alert --message "Test alert" --sms --email
   - Create a local work-order ticket:
     - uv run orow ticket --title "Encroachment" --description "Manual ticket" --priority high
+  - Summarize a JSON report (LLM if enabled, deterministic fallback):
+    - uv run orow summarize-report --report reports/pipeline_run.json
+  - Serve the Work Orders DB with Datasette (print command without launching):
+    - uv run orow db-serve --print-cmd
 - Tests:
   - Run all via tox (includes coverage): uv run tox
   - Just unit tests: uv run pytest -q
@@ -47,6 +51,9 @@ Configuration and environment
 - Alerts (optional) via environment variables (see alerts/notifier.py):
   - Twilio SMS: TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_FROM
   - SMTP Email: SMTP_HOST, SMTP_PORT, SMTP_USERNAME, SMTP_PASSWORD, EMAIL_FROM
+- LLM (optional):
+  - Enable in configs/settings.yaml: llm.enabled: true, provider: openai, model: gpt-4o-mini
+  - Environment: OPENAI_API_KEY
 - Optional extras defined in pyproject:
   - geo (rasterio, GDAL), alerts (twilio), test (pytest, pytest-cov), dev (ruff, black, mypy, tox)
   - If you need direct tool invocations (ruff/black/mypy), install dev extras: uv pip install -e .[dev]
@@ -74,6 +81,8 @@ High-level architecture
   - Corridor loading from GeoJSON, UTM projection helpers, distance-to-corridor, and buffer containment checks (Shapely + pyproj)
 - Reporting — src/openrightofway/reports/reporting.py
   - JSON report writer used by detect/pipeline-run
+- LLM Summarization — src/openrightofway/llm/openai_agent.py
+  - Summarize pipeline results using OpenAI when enabled; deterministic fallback otherwise
 - Logging — src/openrightofway/utils/logging.py
   - Root logging setup using RichHandler when available
 

@@ -33,7 +33,11 @@ dependencies = [
 geo = ["rasterio>=1.3", "GDAL>=3.4"]
 alerts = ["twilio>=9.0"]
 test = ["pytest>=8.0", "pytest-cov>=4.1"]
-dev = ["ruff>=0.5.6", "black>=24.3", "mypy>=1.10", "tox>=4.0", "types-PyYAML>=6.0.12.12"]
+# Developer tooling and type/lint
+dev = ["ruff>=0.5.6", "black>=24.3", "mypy>=1.10", "tox>=4.0", "types-PyYAML>=6.0.12.12", "setuptools>=69.0"]
+# Optional LLM and ops integrations
+agents = ["openai"]
+ops = ["datasette", "llm"]
 
 [project.scripts]
 orow = "openrightofway.cli:app"

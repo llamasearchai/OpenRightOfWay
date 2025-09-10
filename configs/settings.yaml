@@ -25,3 +25,9 @@ compliance:
 reporting:
   include_images: true
 
+llm:
+  enabled: false
+  provider: openai
+  model: gpt-4o-mini
+  max_tokens: 400
+
