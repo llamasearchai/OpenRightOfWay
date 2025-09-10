@@ -3,7 +3,6 @@ from __future__ import annotations
 import sqlite3
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
 
 from openrightofway.utils.logging import get_logger
 
@@ -16,9 +15,9 @@ class WorkOrder:
     title: str
     description: str
     priority: str
-    latitude: Optional[float]
-    longitude: Optional[float]
-    evidence_path: Optional[str]
+    latitude: float | None
+    longitude: float | None
+    evidence_path: str | None
     status: str
 
 
@@ -46,15 +45,15 @@ class WorkOrderManager:
             )
             conn.commit()
 
-    def create(self, title: str, description: str, priority: str = "high", latitude: Optional[float] = None,
-               longitude: Optional[float] = None, evidence_path: Optional[str] = None) -> WorkOrder:
+    def create(self, title: str, description: str, priority: str = "high", latitude: float | None = None,
+               longitude: float | None = None, evidence_path: str | None = None) -> WorkOrder:
         with sqlite3.connect(self.db_path) as conn:
             cur = conn.execute(
                 "INSERT INTO work_orders (title, description, priority, latitude, longitude, evidence_path, status) VALUES (?, ?, ?, ?, ?, ?, ?)",
                 (title, description, priority, latitude, longitude, evidence_path, "open"),
             )
             conn.commit()
-            wo_id = int(cur.lastrowid)
+            wo_id = int(cur.lastrowid) if cur.lastrowid is not None else 0
         logger.info("Created work order %d", wo_id)
         return WorkOrder(
             id=wo_id,
@@ -67,7 +66,7 @@ class WorkOrderManager:
             status="open",
         )
 
-    def get(self, wo_id: int) -> Optional[WorkOrder]:
+    def get(self, wo_id: int) -> WorkOrder | None:
         with sqlite3.connect(self.db_path) as conn:
             row = conn.execute(
                 "SELECT id, title, description, priority, latitude, longitude, evidence_path, status FROM work_orders WHERE id=?",

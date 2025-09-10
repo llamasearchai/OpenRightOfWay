@@ -3,9 +3,9 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
-import yaml
+import yaml  # type: ignore[import-untyped]
 
 from openrightofway.utils.logging import get_logger
 
@@ -73,7 +73,7 @@ class Config:
     llm: LLMSettings = field(default_factory=LLMSettings)
 
 
-_DEFAULTS: Dict[str, Any] = {
+_DEFAULTS: dict[str, Any] = {
     "app": {
         "model_path": "models/baseline.joblib",
         "reports_dir": "reports",
@@ -95,17 +95,17 @@ _DEFAULTS: Dict[str, Any] = {
 }
 
 
-def _merge_dicts(base: Dict[str, Any], override: Dict[str, Any]) -> Dict[str, Any]:
+def _merge_dicts(base: dict[str, Any], override: dict[str, Any]) -> dict[str, Any]:
     result = dict(base)
     for k, v in override.items():
         if isinstance(v, dict) and isinstance(base.get(k), dict):
-            result[k] = _merge_dicts(base[k], v)  # type: ignore[index]
+            result[k] = _merge_dicts(base[k], v)
         else:
             result[k] = v
     return result
 
 
-def load_yaml(path: Path) -> Dict[str, Any]:
+def load_yaml(path: Path) -> dict[str, Any]:
     if not path.exists():
         logger.info("Config file %s not found; using defaults", path)
         return {}
@@ -123,7 +123,7 @@ def ensure_dirs(cfg: Config) -> None:
     models_dir.mkdir(parents=True, exist_ok=True)
 
 
-def from_dict(d: Dict[str, Any]) -> Config:
+def from_dict(d: dict[str, Any]) -> Config:
     app = d.get("app", {})
     pipeline = d.get("pipeline", {})
     alerts = d.get("alerts", {})
@@ -145,7 +145,7 @@ def from_dict(d: Dict[str, Any]) -> Config:
     return cfg
 
 
-def load_config(path: Optional[str] = None) -> Config:
+def load_config(path: str | None = None) -> Config:
     """Load configuration by merging defaults with a file and env overrides.
 
     Env overrides (optional):
@@ -158,7 +158,7 @@ def load_config(path: Optional[str] = None) -> Config:
     merged = _merge_dicts(_DEFAULTS, file_cfg)
 
     # Environment overrides
-    app_overrides: Dict[str, Any] = {}
+    app_overrides: dict[str, Any] = {}
     if os.getenv("OROW_MODEL_PATH"):
         app_overrides["model_path"] = os.getenv("OROW_MODEL_PATH")
     if os.getenv("OROW_REPORTS_DIR"):

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, List
 
 from openrightofway.utils.logging import get_logger
 
@@ -12,7 +11,7 @@ logger = get_logger(__name__)
 class ThreatResult:
     score: float
     level: str
-    reasons: List[str]
+    reasons: list[str]
 
 
 def _base_by_type(encroachment_type: str) -> float:
@@ -35,7 +34,7 @@ def compute_threat(
     area_pixels: int,
 ) -> ThreatResult:
     """Compute a 0-100 threat score with qualitative level and reasons."""
-    reasons: List[str] = []
+    reasons: list[str] = []
     base = _base_by_type(encroachment_type)
     reasons.append(f"base({encroachment_type})={base:.1f}")
 

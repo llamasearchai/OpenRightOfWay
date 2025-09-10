@@ -2,27 +2,26 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Optional
 
 import typer
 
+from openrightofway.alerts.notifier import Notifier
+from openrightofway.compliance.checks import check_setback
 from openrightofway.core.config import load_config
 from openrightofway.cv.change_detection import detect_changes
-from openrightofway.ml.filter import FalsePositiveFilter, Features
-from openrightofway.scoring.threat import compute_threat
-from openrightofway.compliance.checks import check_setback
-from openrightofway.alerts.notifier import Notifier
 from openrightofway.integrations.work_orders import WorkOrderManager
-from openrightofway.reports.reporting import generate_report
-from openrightofway.utils.logging import get_logger
 from openrightofway.llm.openai_agent import summarize_events
+from openrightofway.ml.filter import FalsePositiveFilter, Features
+from openrightofway.reports.reporting import generate_report
+from openrightofway.scoring.threat import compute_threat
+from openrightofway.utils.logging import get_logger
 
 app = typer.Typer(add_completion=False, help="OpenRightOfWay CLI")
 logger = get_logger(__name__)
 
 
 @app.command()
-def train_model(model_path: Optional[str] = typer.Option(None, help="Path to save/load model")):
+def train_model(model_path: str | None = typer.Option(None, help="Path to save/load model")):
     """Train or load the baseline ML model used for false positive reduction."""
     cfg = load_config()
     path = model_path or cfg.app.model_path
@@ -35,7 +34,7 @@ def train_model(model_path: Optional[str] = typer.Option(None, help="Path to sav
 def detect(
     before: str = typer.Option(..., help="Path to BEFORE image"),
     after: str = typer.Option(..., help="Path to AFTER image"),
-    report: Optional[str] = typer.Option(None, help="Path to write JSON report"),
+    report: str | None = typer.Option(None, help="Path to write JSON report"),
 ):
     """Run change detection and optionally write a report.
 
@@ -75,9 +74,9 @@ def pipeline_run(
     before: str = typer.Option(..., help="Path to BEFORE image"),
     after: str = typer.Option(..., help="Path to AFTER image"),
     encroachment_type: str = typer.Option("unknown", help="Type: structure|road|equipment|water|unknown"),
-    latitude: Optional[float] = typer.Option(None, help="Approximate latitude of event center (optional)"),
-    longitude: Optional[float] = typer.Option(None, help="Approximate longitude of event center (optional)"),
-    report: Optional[str] = typer.Option(None, help="Path to write JSON report"),
+    latitude: float | None = typer.Option(None, help="Approximate latitude of event center (optional)"),
+    longitude: float | None = typer.Option(None, help="Approximate longitude of event center (optional)"),
+    report: str | None = typer.Option(None, help="Path to write JSON report"),
 ):
     """Run end-to-end pipeline: detect -> ML filter -> score -> compliance -> alert -> ticket -> report.
 
@@ -109,7 +108,9 @@ def pipeline_run(
     logger.info("Kept %d/%d detections after ML filtering", len(kept), len(dets))
 
     # Score + Compliance
-    events = []
+    from typing import Any as _Any  # local alias to avoid global import
+
+    events: list[dict[str, _Any]] = []
     for d, proba in kept:
         distance_m = 100.0
         compliance_ok = True
@@ -145,8 +146,8 @@ def pipeline_run(
         )
 
     # Notify and create ticket per high/critical events
-    alerts_sent = []
-    tickets = []
+    alerts_sent: list[dict[str, str]] = []
+    tickets: list[dict[str, _Any]] = []
     for ev in events:
         if ev["threat"]["level"] in {"high", "critical"}:
             msg = (

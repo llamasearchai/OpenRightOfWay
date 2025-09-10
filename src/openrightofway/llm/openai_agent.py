@@ -2,15 +2,15 @@ from __future__ import annotations
 
 import json
 import os
-from typing import Any, Dict, List
+from typing import Any
 
 from openrightofway.utils.logging import get_logger
 
 logger = get_logger(__name__)
 
 
-def _deterministic_summary(data: Dict[str, Any]) -> str:
-    events: List[Dict[str, Any]] = list(data.get("events", []))
+def _deterministic_summary(data: dict[str, Any]) -> str:
+    events: list[dict[str, Any]] = list(data.get("events", []))
     total = len(events)
     high_crit = sum(1 for e in events if e.get("threat", {}).get("level") in {"high", "critical"})
     alerts = len(data.get("alerts", []))
@@ -36,7 +36,7 @@ def _deterministic_summary(data: Dict[str, Any]) -> str:
     return "; ".join(parts)
 
 
-def summarize_events(data: Dict[str, Any], cfg: Any) -> str:
+def summarize_events(data: dict[str, Any], cfg: Any) -> str:
     """Summarize pipeline results using OpenAI if configured; otherwise return a deterministic summary.
 
     Requires OPENAI_API_KEY in the environment when cfg.llm.enabled is True.
@@ -52,7 +52,7 @@ def summarize_events(data: Dict[str, Any], cfg: Any) -> str:
 
     try:
         # Lazy import to avoid dependency for users who don't enable LLM
-        from openai import OpenAI  # type: ignore
+        from openai import OpenAI
 
         client = OpenAI()  # API key picked up from env
         model = getattr(cfg.llm, "model", "gpt-4o-mini")
@@ -93,7 +93,7 @@ def summarize_events(data: Dict[str, Any], cfg: Any) -> str:
                     max_output_tokens=max_tokens,
                 )
                 # The Responses API returns content in a different structure
-                if resp.output_text:
+                if getattr(resp, "output_text", None):
                     return resp.output_text.strip()
             except Exception:
                 logger.exception("OpenAI request failed; falling back to deterministic summary")
@@ -101,4 +101,7 @@ def summarize_events(data: Dict[str, Any], cfg: Any) -> str:
     except Exception:
         logger.exception("OpenAI SDK not available; falling back to deterministic summary")
         return _deterministic_summary(data)
+
+    # Safety net
+    return _deterministic_summary(data)
 

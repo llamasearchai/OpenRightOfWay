@@ -1,5 +1,7 @@
 # OpenRightOfWay
 
+## About
+
 OpenRightOfWay is a Python monitoring application that leverages computer vision, geospatial analysis, and automated alerting to detect encroachments in pipeline right-of-way corridors and coordinate immediate field response actions.
 
 Key capabilities:

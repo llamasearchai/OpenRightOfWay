@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import os
 import smtplib
+from collections.abc import Iterable
 from email.message import EmailMessage
-from typing import Iterable, Optional
 
 from openrightofway.utils.logging import get_logger
 
@@ -49,7 +49,7 @@ class Notifier:
         to_emails: Iterable[str],
         subject: str,
         body: str,
-        attachments: Optional[Iterable[str]] = None,
+        attachments: Iterable[str] | None = None,
     ) -> None:
         emails = list(to_emails)
         if not emails:

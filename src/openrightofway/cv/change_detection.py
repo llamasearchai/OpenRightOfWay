@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import List, Tuple
 
 import cv2
 import numpy as np
@@ -13,9 +12,9 @@ logger = get_logger(__name__)
 
 @dataclass
 class Detection:
-    bbox: Tuple[int, int, int, int]  # x, y, w, h
+    bbox: tuple[int, int, int, int]  # x, y, w, h
     area: int
-    centroid: Tuple[float, float]
+    centroid: tuple[float, float]
     magnitude: float  # mean abs diff inside bbox
 
 
@@ -33,7 +32,7 @@ def detect_changes(
     change_threshold: int = 30,
     min_contour_area: int = 200,
     morphological_kernel: int = 3,
-) -> List[Detection]:
+) -> list[Detection]:
     """Detect changes between two images using absdiff + thresholding.
 
     Returns a list of Detection objects with bounding boxes and basic metrics.
@@ -59,7 +58,7 @@ def detect_changes(
 
     contours, _ = cv2.findContours(opened, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-    detections: List[Detection] = []
+    detections: list[Detection] = []
     for c in contours:
         area = int(cv2.contourArea(c))
         if area < min_contour_area:
@@ -67,13 +66,13 @@ def detect_changes(
         x, y, w, h = cv2.boundingRect(c)
         M = cv2.moments(c)
         if M["m00"] != 0:
-            cx = float(M["m10"] / M["m00"])  # type: ignore[call-overload]
-            cy = float(M["m01"] / M["m00"])  # type: ignore[call-overload]
+            cx = float(M["m10"] / M["m00"])
+            cy = float(M["m01"] / M["m00"])
         else:
             cx, cy = float(x + w / 2.0), float(y + h / 2.0)
         # mean magnitude within bbox
         roi = diff[y : y + h, x : x + w]
-        magnitude = float(np.mean(roi)) if roi.size else 0.0
+        magnitude = float(np.mean(roi.astype(float))) if roi.size else 0.0
         detections.append(Detection(bbox=(x, y, w, h), area=area, centroid=(cx, cy), magnitude=magnitude))
 
     logger.info("Detected %d candidate changes", len(detections))

@@ -2,12 +2,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Tuple
 
-from shapely.geometry import shape, Point, LineString, MultiLineString, Polygon, MultiPolygon
+from pyproj import CRS, Transformer
+from shapely.geometry import LineString, MultiLineString, MultiPolygon, Point, Polygon, shape
 from shapely.geometry.base import BaseGeometry
 from shapely.ops import unary_union
-from pyproj import CRS, Transformer
 
 from openrightofway.utils.logging import get_logger
 
@@ -20,7 +19,7 @@ class Corridor:
 
 
 def _to_geometry(geom: BaseGeometry) -> BaseGeometry:
-    if isinstance(geom, (LineString, MultiLineString, Polygon, MultiPolygon)):
+    if isinstance(geom, LineString | MultiLineString | Polygon | MultiPolygon):
         return geom
     raise TypeError("Unsupported geometry type for corridor")
 
@@ -54,7 +53,7 @@ def _utm_crs_for_lonlat(lon: float, lat: float) -> CRS:
     return CRS.from_epsg(epsg)
 
 
-def _build_transformers(sample_lon: float, sample_lat: float) -> Tuple[Transformer, Transformer]:
+def _build_transformers(sample_lon: float, sample_lat: float) -> tuple[Transformer, Transformer]:
     src = CRS.from_epsg(4326)
     dst = _utm_crs_for_lonlat(sample_lon, sample_lat)
     fwd = Transformer.from_crs(src, dst, always_xy=True)
@@ -92,8 +91,6 @@ def point_in_corridor_buffer(lon: float, lat: float, corridor: Corridor, buffer_
 
 def shapely_transform_coords(geom: BaseGeometry, tx_fn):
     """Transform coordinates of a shapely geometry using tx_fn(xy)->(x,y)."""
-    from shapely.geometry import mapping
-    import json
 
     def _recurse(g):
         if g.geom_type == "Point":

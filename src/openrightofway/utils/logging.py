@@ -1,5 +1,4 @@
 import logging
-from typing import Optional
 
 try:
     from rich.logging import RichHandler
@@ -32,7 +31,7 @@ def setup_logging(level: int = logging.INFO) -> None:
     _LOGGING_CONFIGURED = True
 
 
-def get_logger(name: Optional[str] = None) -> logging.Logger:
+def get_logger(name: str | None = None) -> logging.Logger:
     setup_logging()
     return logging.getLogger(name if name else "openrightofway")
 
